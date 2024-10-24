@@ -1,15 +1,15 @@
 import { Handler } from "aws-lambda";
-
+import { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 // Initialization
 const ddbDocClient = createDDbDocClient();
 // Handler
-export const handler: Handler = async (event, context) => {
-  try {
-    console.log("Event: ", JSON.stringify(event));
-    const parameters = event?.queryStringParameters;
-    const gameId = parameters ? parseInt(parameters.gameId) : undefined;
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {     // Note change
+    try {
+      console.log("[EVENT]", JSON.stringify(event));
+      const parameters  = event?.pathParameters;
+      const gameId = parameters?.gameId ? parseInt(parameters.gameId) : undefined;
 
     if (!gameId) {
       return {

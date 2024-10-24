@@ -5,7 +5,7 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as custom from "aws-cdk-lib/custom-resources";
 import { generateBatch } from "../shared/util";
 import {games, soundtrack} from "../seed/games";
-
+import * as apig from "aws-cdk-lib/aws-apigateway";
 import { Construct } from 'constructs';
 
 export class AssignmentAppStack extends cdk.Stack {
@@ -105,6 +105,32 @@ export class AssignmentAppStack extends cdk.Stack {
     gamesTable.grantReadData(getGameByIdFn)
     gamesTable.grantReadData(getAllGamesFn)
     soundtrackTable.grantReadData(getGaneSoundtracksFn)
+
+    // REST API 
+    const api = new apig.RestApi(this, "RestAPI", {
+      description: "demo api",
+      deployOptions: {
+        stageName: "dev",
+      },
+      defaultCorsPreflightOptions: {
+        allowHeaders: ["Content-Type", "X-Amz-Date"],
+        allowMethods: ["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],
+        allowCredentials: true,
+        allowOrigins: ["*"],
+      },
+    });
+
+    const moviesEndpoint = api.root.addResource("movies");
+    moviesEndpoint.addMethod(
+      "GET",
+      new apig.LambdaIntegration(getAllGamesFn, { proxy: true })
+    );
+
+    const movieEndpoint = moviesEndpoint.addResource("{movieId}");
+    movieEndpoint.addMethod(
+      "GET",
+      new apig.LambdaIntegration(getGameByIdFn, { proxy: true })
+    );
 
     new custom.AwsCustomResource(this, "moviesddbInitData", {
       onCreate: {
