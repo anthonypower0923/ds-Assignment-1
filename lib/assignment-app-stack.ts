@@ -107,8 +107,8 @@ export class AssignmentAppStack extends cdk.Stack {
     soundtrackTable.grantReadData(getGaneSoundtracksFn)
 
     // REST API 
-    const api = new apig.RestApi(this, "RestAPI", {
-      description: "demo api",
+    const api = new apig.RestApi(this, "AssignmentRestAPI", {
+      description: "assignment api",
       deployOptions: {
         stageName: "dev",
       },
@@ -120,19 +120,19 @@ export class AssignmentAppStack extends cdk.Stack {
       },
     });
 
-    const moviesEndpoint = api.root.addResource("movies");
+    const moviesEndpoint = api.root.addResource("games");
     moviesEndpoint.addMethod(
       "GET",
       new apig.LambdaIntegration(getAllGamesFn, { proxy: true })
     );
 
-    const movieEndpoint = moviesEndpoint.addResource("{movieId}");
+    const movieEndpoint = moviesEndpoint.addResource("{gameId}");
     movieEndpoint.addMethod(
       "GET",
       new apig.LambdaIntegration(getGameByIdFn, { proxy: true })
     );
 
-    new custom.AwsCustomResource(this, "moviesddbInitData", {
+    new custom.AwsCustomResource(this, "gamesddbInitData", {
       onCreate: {
         service: "DynamoDB",
         action: "batchWriteItem",
@@ -142,7 +142,7 @@ export class AssignmentAppStack extends cdk.Stack {
             [soundtrackTable.tableName]: generateBatch(soundtrack),  // Added
  },
  },
-        physicalResourceId: custom.PhysicalResourceId.of("moviesddbInitData"), //.of(Date.now().toString()),
+        physicalResourceId: custom.PhysicalResourceId.of("gamesddbInitData"), //.of(Date.now().toString()),
  },
       policy: custom.AwsCustomResourcePolicy.fromSdkCalls({
         resources: [gamesTable.tableArn, soundtrackTable.tableArn],  // Includes movie cast
