@@ -42,9 +42,34 @@ export class AssignmentAppStack extends cdk.Stack {
       },
     });
 
-    gamesTable.grantReadData(getGameByIdFn)
+    const getAllGamesFn = new lambdanode.NodejsFunction(
+      this,
+      "GetAllGamesFn",
+      {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: `${__dirname}/../lambdas/getAllGames.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+          TABLE_NAME: gamesTable.tableName,
+          REGION: 'eu-west-1',
+        },
+      }
+    );
 
-    new cdk.CfnOutput(this, "Get Movie Function Url", { value: getGameByIdURL.url });
+    const getAllGamesURL = getAllGamesFn.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE,
+      cors: {
+        allowedOrigins: ["*"],
+      },
+    });
+
+    gamesTable.grantReadData(getGameByIdFn)
+    gamesTable.grantReadData(getAllGamesFn)
+
+    new cdk.CfnOutput(this, "Get All Games Function Url", { value: getAllGamesURL.url });
+    new cdk.CfnOutput(this, "Get Games Function Url", { value: getGameByIdURL.url });
 
     new custom.AwsCustomResource(this, "gamesddbInitData", {
       onCreate: {
