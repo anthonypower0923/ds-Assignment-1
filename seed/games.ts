@@ -1,4 +1,4 @@
-import { Game } from "../shared/types";
+import { Game, Soundtrack } from "../shared/types";
 
 export const games : Game[] = [
     {
@@ -14,3 +14,20 @@ export const games : Game[] = [
     // metacritic_rating: number,
 },
 ];
+
+export const soundtrack: Soundtrack[] = [
+    {
+    gameId: 1234,
+    title: 'Deep Mentality -Reload-',
+    length: '3:41',
+    artists: ['Atlus_Game_Music'],
+    spotify_plays: 725971,
+    },
+    {
+        gameId: 1234,
+        title: "Don't",
+        length: '2:45',
+        artists: ['Atlus_Game_Music'],
+        spotify_plays: 3747237,
+    },
+]
