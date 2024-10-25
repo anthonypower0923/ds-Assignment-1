@@ -1,4 +1,4 @@
-import { Game, Soundtrack } from "../shared/types";
+import { Game, Song } from "../shared/types";
 
 export const games : Game[] = [
     {
@@ -30,7 +30,7 @@ export const games : Game[] = [
 },
 ];
 
-export const soundtrack: Soundtrack[] = [
+export const songs: Song[] = [
     {
     gameId: 1234,
     title: 'Deep Mentality -Reload-',

@@ -4,7 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as custom from "aws-cdk-lib/custom-resources";
 import { generateBatch } from "../shared/util";
-import {games, soundtrack} from "../seed/games";
+import {games, songs} from "../seed/games";
 import * as apig from "aws-cdk-lib/aws-apigateway";
 import { Construct } from 'constructs';
 
@@ -19,15 +19,15 @@ export class AssignmentAppStack extends cdk.Stack {
       tableName: "Games",
     });
 
-    const soundtrackTable = new dynamodb.Table(this, "SoundtrackTable", {
+    const songsTable = new dynamodb.Table(this, "SongsTable", {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: { name: "gameId", type: dynamodb.AttributeType.NUMBER },
       sortKey: { name: "title", type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-      tableName: "Soundtrack",
+      tableName: "Songs",
  });
 
-    soundtrackTable.addLocalSecondaryIndex({
+    songsTable.addLocalSecondaryIndex({
       indexName: "artistIx",
       sortKey: { name: "artist", type: dynamodb.AttributeType.STRING },
  });
@@ -48,12 +48,6 @@ export class AssignmentAppStack extends cdk.Stack {
       }
     );
 
-    const getGameByIdURL = getGameByIdFn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE,
-      cors: {
-        allowedOrigins: ["*"],
-      },
-    });
 
     const getAllGamesFn = new lambdanode.NodejsFunction(
       this,
@@ -71,14 +65,8 @@ export class AssignmentAppStack extends cdk.Stack {
       }
     );
 
-    const getAllGamesURL = getAllGamesFn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE,
-      cors: {
-        allowedOrigins: ["*"],
-      },
-    });
 
-    const getGaneSoundtracksFn = new lambdanode.NodejsFunction(
+    const getGameSoundtracksFn = new lambdanode.NodejsFunction(
       this,
       "GetCastMemberFn",
  {
@@ -88,18 +76,12 @@ export class AssignmentAppStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(10),
         memorySize: 128,
         environment: {
-          CAST_TABLE_NAME: soundtrackTable.tableName,
+          CAST_TABLE_NAME: songsTable.tableName,
           REGION: "eu-west-1",
  },
  }
  );
 
-    const getGamesSoundtracksURL = getGaneSoundtracksFn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE,
-      cors: {
-        allowedOrigins: ["*"],
- },
- });
 
     const newGameFn = new lambdanode.NodejsFunction(this, "AddGameFn", {
     architecture: lambda.Architecture.ARM_64,
@@ -131,7 +113,7 @@ export class AssignmentAppStack extends cdk.Stack {
 
     gamesTable.grantReadData(getGameByIdFn)
     gamesTable.grantReadData(getAllGamesFn)
-    soundtrackTable.grantReadData(getGaneSoundtracksFn)
+    songsTable.grantReadData(getGameSoundtracksFn)
     gamesTable.grantReadWriteData(newGameFn)
     gamesTable.grantReadWriteData(deleteGameByIdFn)
 
@@ -171,6 +153,12 @@ export class AssignmentAppStack extends cdk.Stack {
       new apig.LambdaIntegration(deleteGameByIdFn, { proxy: true })
     );
 
+    const gameSoundtrackEndpoint = gamesEndpoint.addResource("soundtrack");
+    gameSoundtrackEndpoint.addMethod(
+    "GET",
+    new apig.LambdaIntegration(getGameSoundtracksFn, { proxy: true })
+);
+
     new custom.AwsCustomResource(this, "gamesddbInitData", {
       onCreate: {
         service: "DynamoDB",
@@ -178,20 +166,15 @@ export class AssignmentAppStack extends cdk.Stack {
         parameters: {
           RequestItems: {
             [gamesTable.tableName]: generateBatch(games),
-            [soundtrackTable.tableName]: generateBatch(soundtrack),  // Added
+            [songsTable.tableName]: generateBatch(songs),  // Added
  },
  },
         physicalResourceId: custom.PhysicalResourceId.of("gamesddbInitData"), //.of(Date.now().toString()),
  },
       policy: custom.AwsCustomResourcePolicy.fromSdkCalls({
-        resources: [gamesTable.tableArn, soundtrackTable.tableArn],  // Includes movie cast
+        resources: [gamesTable.tableArn, songsTable.tableArn],  // Includes songs
  }),
  });
 
-    new cdk.CfnOutput(this, "Get All Games Function Url", { value: getAllGamesURL.url });
-    new cdk.CfnOutput(this, "Get Games Function Url", { value: getGameByIdURL.url });
-    new cdk.CfnOutput(this, "Get Games Soundtracks Url", {
-      value: getGamesSoundtracksURL.url,
- });
   }
 }
