@@ -42,6 +42,7 @@ export class AssignmentAppStack extends cdk.Stack {
         timeout: cdk.Duration.seconds(10),
         memorySize: 128,
         environment: {
+          Soundtrack_TABLE_NAME: songsTable.tableName,
           TABLE_NAME: gamesTable.tableName,
           REGION: 'eu-west-1',
         },
@@ -116,6 +117,7 @@ export class AssignmentAppStack extends cdk.Stack {
     songsTable.grantReadData(getGameSoundtracksFn)
     gamesTable.grantReadWriteData(newGameFn)
     gamesTable.grantReadWriteData(deleteGameByIdFn)
+    songsTable.grantReadData(getGameByIdFn)
 
     // REST API 
     const api = new apig.RestApi(this, "AssignmentRestAPI", {
