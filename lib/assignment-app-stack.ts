@@ -78,7 +78,6 @@ export class AssignmentAppStack extends cdk.Stack {
       },
     });
 
-    //  Functions .....
     const getGaneSoundtracksFn = new lambdanode.NodejsFunction(
       this,
       "GetCastMemberFn",
@@ -102,22 +101,39 @@ export class AssignmentAppStack extends cdk.Stack {
  },
  });
 
- const newGameFn = new lambdanode.NodejsFunction(this, "AddGameFn", {
-  architecture: lambda.Architecture.ARM_64,
-  runtime: lambda.Runtime.NODEJS_16_X,
-  entry: `${__dirname}/../lambdas/addGame.ts`,
-  timeout: cdk.Duration.seconds(10),
-  memorySize: 128,
-  environment: {
-    TABLE_NAME: gamesTable.tableName,
-    REGION: "eu-west-1",
-  },
-});
+    const newGameFn = new lambdanode.NodejsFunction(this, "AddGameFn", {
+    architecture: lambda.Architecture.ARM_64,
+    runtime: lambda.Runtime.NODEJS_16_X,
+    entry: `${__dirname}/../lambdas/addGame.ts`,
+    timeout: cdk.Duration.seconds(10),
+    memorySize: 128,
+    environment: {
+      TABLE_NAME: gamesTable.tableName,
+      REGION: "eu-west-1",
+    },
+    });
+
+    const deleteGameByIdFn = new lambdanode.NodejsFunction(
+      this,
+      "DeleteGameByIdFn",
+      {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: `${__dirname}/../lambdas/deleteGame.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        environment: {
+          TABLE_NAME: gamesTable.tableName,
+          REGION: 'eu-west-1',
+        },
+      }
+      );
 
     gamesTable.grantReadData(getGameByIdFn)
     gamesTable.grantReadData(getAllGamesFn)
     soundtrackTable.grantReadData(getGaneSoundtracksFn)
     gamesTable.grantReadWriteData(newGameFn)
+    gamesTable.grantReadWriteData(deleteGameByIdFn)
 
     // REST API 
     const api = new apig.RestApi(this, "AssignmentRestAPI", {
@@ -148,6 +164,11 @@ export class AssignmentAppStack extends cdk.Stack {
     gamesEndpoint.addMethod(
       "POST",
       new apig.LambdaIntegration(newGameFn, { proxy: true })
+    );
+
+    gameEndpoint.addMethod(
+      "DELETE",
+      new apig.LambdaIntegration(deleteGameByIdFn, { proxy: true })
     );
 
     new custom.AwsCustomResource(this, "gamesddbInitData", {
