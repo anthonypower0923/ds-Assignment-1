@@ -25,7 +25,11 @@
     "@aws-sdk/util-dynamodb": "^3.658.1",
     "ajv": "^8.17.1",
     "aws-cdk-lib": "2.156.0",
+    "axios": "^1.1.2",
     "constructs": "^10.3.0",
-    "source-map-support": "^0.5.21"
+    "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.5",
+    "source-map-support": "^0.5.21",
+    "@aws-sdk/client-cognito-identity-provider": "^3.670.0"
   }
 }
