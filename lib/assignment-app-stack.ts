@@ -102,9 +102,22 @@ export class AssignmentAppStack extends cdk.Stack {
  },
  });
 
+ const newGameFn = new lambdanode.NodejsFunction(this, "AddGameFn", {
+  architecture: lambda.Architecture.ARM_64,
+  runtime: lambda.Runtime.NODEJS_16_X,
+  entry: `${__dirname}/../lambdas/addGame.ts`,
+  timeout: cdk.Duration.seconds(10),
+  memorySize: 128,
+  environment: {
+    TABLE_NAME: gamesTable.tableName,
+    REGION: "eu-west-1",
+  },
+});
+
     gamesTable.grantReadData(getGameByIdFn)
     gamesTable.grantReadData(getAllGamesFn)
     soundtrackTable.grantReadData(getGaneSoundtracksFn)
+    gamesTable.grantReadWriteData(newGameFn)
 
     // REST API 
     const api = new apig.RestApi(this, "AssignmentRestAPI", {
@@ -120,16 +133,21 @@ export class AssignmentAppStack extends cdk.Stack {
       },
     });
 
-    const moviesEndpoint = api.root.addResource("games");
-    moviesEndpoint.addMethod(
+    const gamesEndpoint = api.root.addResource("games");
+    gamesEndpoint.addMethod(
       "GET",
       new apig.LambdaIntegration(getAllGamesFn, { proxy: true })
     );
 
-    const movieEndpoint = moviesEndpoint.addResource("{gameId}");
-    movieEndpoint.addMethod(
+    const gameEndpoint = gamesEndpoint.addResource("{gameId}");
+    gameEndpoint.addMethod(
       "GET",
       new apig.LambdaIntegration(getGameByIdFn, { proxy: true })
+    );
+
+    gamesEndpoint.addMethod(
+      "POST",
+      new apig.LambdaIntegration(newGameFn, { proxy: true })
     );
 
     new custom.AwsCustomResource(this, "gamesddbInitData", {
