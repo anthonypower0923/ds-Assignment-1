@@ -6,7 +6,7 @@ export const games : Game[] = [
     backdrop_path: '/sRLC052ieEzkQs9dEtPMfFxYkej.jpg,',
     genre_ids: [123 , 456],
     age_rating: 'M',
-    overview: '',
+    overview: 'Dive into the Dark Hour and awaken the depths of your heart. Persona 3 Reload is a captivating reimagining of the genre-defining RPG, reborn for the modern era with cutting-edge graphics and gameplay.',
     copies_sold_in_first_week: 1000000,
     poster_path: '/6epeijccmJlnfvFitfGyfT7njav.jpg',
     release_date: 'February 1, 2024',

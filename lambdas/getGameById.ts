@@ -1,12 +1,15 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand , QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import * as AWS from 'aws-sdk';
+import apiResponses from './common/apiResponses';
 
 const ddbClient = new DynamoDBClient({ region: process.env.REGION });
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     console.log("[EVENT]", JSON.stringify(event));
+    const translate = new AWS.Translate();
     const parameters  = event?.pathParameters;
     const gameId = parameters?.gameId ? parseInt(parameters.gameId) : undefined;
     const queryParams = event.queryStringParameters;
@@ -21,7 +24,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       };
     }
 
-    const commandOutput = await ddbClient.send(
+    let commandOutput = await ddbClient.send(
       new GetCommand({
         TableName: process.env.TABLE_NAME,
         Key: { id: gameId },
@@ -37,6 +40,22 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
         body: JSON.stringify({ Message: "Invalid game Id" }),
       };
     }
+
+    if (queryParams) {
+      if (queryParams.language) {
+        try {
+          const translateParams: AWS.Translate.Types.TranslateTextRequest = {
+            Text: commandOutput.Item.overview,
+            SourceLanguageCode: 'en',
+            TargetLanguageCode: queryParams.language,
+        };
+          commandOutput.Item.overview = (await translate.translateText(translateParams).promise()).TranslatedText;
+        } catch (error) {
+          return apiResponses._400({ message: 'unable to translate the message' });
+        }
+      }
+    }
+
     const body = {
       data: commandOutput.Item,
     };
