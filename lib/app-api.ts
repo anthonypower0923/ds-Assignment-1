@@ -8,6 +8,7 @@ import {games, songs} from "../seed/games";
 import * as apig from "aws-cdk-lib/aws-apigateway";
 import { Construct } from 'constructs';
 import * as node from "aws-cdk-lib/aws-lambda-nodejs";
+import { IAM } from 'aws-sdk';
 
 type AppApiProps = {
   userPoolId: string;
@@ -135,7 +136,7 @@ export class AppApi extends Construct {
       }
     );
 
-    gamesTable.grantReadData(getGameByIdFn)
+    gamesTable.grantReadWriteData(getGameByIdFn)
     gamesTable.grantReadData(getAllGamesFn)
     songsTable.grantReadData(getGameSoundtracksFn)
     gamesTable.grantReadWriteData(newGameFn)
@@ -154,8 +155,7 @@ export class AppApi extends Construct {
 
     gameByIdPub.addMethod(
       "GET",
-      new apig.LambdaIntegration(getGameByIdFn, { proxy: true })
-    );
+      new apig.LambdaIntegration(getGameByIdFn, { proxy: true }));
 
     gameResPro.addMethod(
       "POST",

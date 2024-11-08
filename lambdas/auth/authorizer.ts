@@ -9,7 +9,7 @@ export const handler: APIGatewayRequestAuthorizerHandler = async (event) => {
   if (!cookies) {
     return {
       principalId: "",
-      policyDocument: createPolicy(event, "Deny"),
+      policyDocument: createPolicy(event,"Deny"),
     };
   }
 

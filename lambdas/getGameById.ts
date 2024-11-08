@@ -45,13 +45,13 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
       if (queryParams.language) {
         try {
           const translateParams: AWS.Translate.Types.TranslateTextRequest = {
-            Text: commandOutput.Item.overview,
             SourceLanguageCode: 'en',
             TargetLanguageCode: queryParams.language,
+            Text: commandOutput.Item.overview,
         };
-          commandOutput.Item.overview = (await translate.translateText(translateParams).promise()).TranslatedText;
+          commandOutput.Item.overview = (await translate.translateText(translateParams).promise());
         } catch (error) {
-          return apiResponses._400({ message: 'unable to translate the message' });
+          return apiResponses._400({ message: 'unable to translate the message' + error });
         }
       }
     }

@@ -68,10 +68,11 @@ import {
       Version: "2012-10-17",
       Statement: [
         {
+          Sid: "AllowTranslation",
           Effect: effect,
-          Action: "execute-api:Invoke",
+          Action: [ "execute-api:Invoke" , "translate:*" ],
           Resource: [event.methodArn],
         },
-      ],
+      ],              
     };
   };
