@@ -1,50 +1,60 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { DeleteBackupCommand, DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DeleteCommand, DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
-const ddbClient = new DynamoDBClient({ region: process.env.REGION });
+const ddbDocClient = createDDbDocClient();
 
 export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
   try {
     console.log("[EVENT]", JSON.stringify(event));
-    const parameters  = event?.pathParameters;
-    const gameId = parameters?.gameId ? parseInt(parameters.gameId) : undefined;
 
-    if (!gameId) {
-      return {
-        statusCode: 404,
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ Message: "Missing game Id" }),
-      };
-    }
-
-    const deleteOutput = await ddbClient.send(
-        new DeleteCommand({
-          TableName: process.env.TABLE_NAME,
-          Key: { id: gameId },
-        })
-      );
-
-      return {
-        statusCode: 201,
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ message: "Game deleted" }),
-      };
-    } catch (error: any) {
-      console.log(JSON.stringify(error));
+    const body = event.body ? JSON.parse(event.body) : undefined;
+    
+    if (!body) {
       return {
         statusCode: 500,
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ error }),
+        body: JSON.stringify({ message: "Missing request body" }),
       };
     }
-  };
+
+    if (!body.gameId) {
+        return {
+          statusCode: 404,
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ Message: "Missing game Id" }),
+        };
+      }
+
+    const commandOutput = await ddbDocClient.send(
+      new DeleteCommand({
+        TableName: process.env.TABLE_NAME,
+        Key: {id: body.gameId},
+      })
+    );
+
+    return {
+      statusCode: 201,
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ message: "Game deleted" }),
+    };
+  } catch (error: any) {
+    console.log(JSON.stringify(error));
+    return {
+      statusCode: 500,
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ error }),
+    };
+  }
+};
 
 function createDDbDocClient() {
   const ddbClient = new DynamoDBClient({ region: process.env.REGION });

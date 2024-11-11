@@ -13,7 +13,6 @@ export const games : Game[] = [
     title: 'Persona 3 Reload',
     developed_by: 'Atlus',
     publishers: 'Sega'
-    // metacritic_rating: number,
 },
 {
     id: 2345,
@@ -35,14 +34,21 @@ export const songs: Song[] = [
     gameId: 1234,
     title: 'Deep Mentality -Reload-',
     length: '3:41',
-    artists: ['Atlus_Game_Music'],
+    artists: ['Atlus Game Music'],
     spotify_plays: 725971,
     },
     {
     gameId: 1234,
     title: "Don't",
     length: '2:45',
-    artists: ['Atlus_Game_Music'],
+    artists: ['Atlus Game Music', 'Lotus Juice'],
     spotify_plays: 3747237,
+    },
+    {
+    gameId: 1234,
+    title: "It's Going Down Now",
+    length: '3:06',
+    artists: ['Atlus Game Music', 'Lotus Juice'],
+    spotify_plays: 45425409
     },
 ]

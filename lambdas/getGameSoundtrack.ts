@@ -32,7 +32,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
  }
     const gameId = parseInt(queryParams?.gameId);
     let commandInput: QueryCommandInput = {
-      TableName: process.env.CAST_TABLE_NAME,
+      TableName: process.env.Soundtrack_TABLE_NAME,
  };
     if ("artist" in queryParams) {
       commandInput = {

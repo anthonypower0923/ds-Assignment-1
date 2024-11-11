@@ -76,7 +76,7 @@ export class AppApi extends Construct {
     );
 
 
-    const getAllGamesFn = new node.NodejsFunction(this, "GetAllFamesFn", {
+    const getAllGamesFn = new node.NodejsFunction(this, "GetAllGamesFn", {
       ...appCommonFnProps,
         entry: `${__dirname}/../lambdas/getAllGames.ts`,
         environment: {
@@ -99,7 +99,7 @@ export class AppApi extends Construct {
     );
 
 
-    const newGameFn = new node.NodejsFunction(this, "GetAllGamesFn", {
+    const newGameFn = new node.NodejsFunction(this, "NewGameFn", {
       ...appCommonFnProps,
         entry: `${__dirname}/../lambdas/addGame.ts`,
         environment: {
@@ -173,7 +173,7 @@ export class AppApi extends Construct {
 
     gameResPro.addMethod(
       "DELETE",
-      new apig.LambdaIntegration(deleteGameByIdFn, { proxy: true })  , {
+      new apig.LambdaIntegration(deleteGameByIdFn, { proxy: true }) , {
         authorizer: requestAuthorizer,
         authorizationType: apig.AuthorizationType.CUSTOM,
       });

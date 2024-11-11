@@ -49,7 +49,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
             TargetLanguageCode: queryParams.language,
             Text: commandOutput.Item.overview,
         };
-          commandOutput.Item.overview = (await translate.translateText(translateParams).promise());
+          commandOutput.Item.overview = (await translate.translateText(translateParams).promise()).TranslatedText;
         } catch (error) {
           return apiResponses._400({ message: 'unable to translate the message' + error });
         }
