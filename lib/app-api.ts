@@ -142,6 +142,13 @@ export class AppApi extends Construct {
     gamesTable.grantReadWriteData(newGameFn)
     gamesTable.grantReadWriteData(deleteGameByIdFn)
     songsTable.grantReadData(getGameByIdFn)
+    getGameByIdFn.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      actions: [
+        "translate:TranslateText",
+        "comprehend:DetectDominantLanguage"
+      ],
+      resources: ["*"],
+    }))
 
 
     const gameResPub = publicRes.addResource("games");
